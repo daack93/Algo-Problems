@@ -1,7 +1,6 @@
 /* Trying this in Java after Haskell wore me down
  * Just to make sure I can even get the right algo 
  */
-import java.io.*;
 import java.util.Scanner;
 
 class PrimeGen_2
