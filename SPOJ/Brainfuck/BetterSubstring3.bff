@@ -1,0 +1,80 @@
+[A better attempt at SPOJ problem 3, now that I'm more familiar
+with Brainfuck.
+Author: David Ackerman
+Apr 17 2016]
+
+[Loop through 24 lines of input]
+++++++++++++++++++++++++
+[>
+    [Leave first cell 0 for rewind&comments]
+    [loop 16 times to read binary strings]
+    >>++++++++++++++++
+    [<,>[>+<-]>-]
+    
+    [now: T01111111111_222220^ where:
+                T is number of iterations;
+                0 is start of working space;
+                1 is first bin string;
+                2 is second bin string;
+                and ^ is current pointer
+                ^000000000000LM is outer loop control + temp space for inner loop.
+    ]
+
+
+    >>>>>>>>>>>>++++++
+    [
+        <<<<<<<<<<<<
+        >+++++
+        [<
+            <<<<<<<<<<<<<<<<<
+            [>>>>>>>>>>>>>>>>>+<<<<<<<<<<<<<<<<<-]
+            >>>>>>>>>>>>>>>>>
+            [<<<<<<<<<<<<<<<<<+>>>>>>>>>>>>>>>>+>-]
+            >[>+<-]
+        >-]
+
+        [now: T01111111111_222221111100^xxxxxLM, L = outer loop, M = matches]
+
+        +++++
+        [
+            <<<<<<<<<<<<
+            [>>>>>>>>>>>+<<<<<<<<<<<-]
+            >>>>>>>>>>>
+            [<<<<<<<<<<<+>>>>>->>>>>>-]
+            +>[>+<-]
+        >-]
+        <<
+        [[-]<]
+        [now: T01111111111_2222233333^0000000LM]
+
+        >+++++
+        [<
+            <[>+<[-]]
+            >[<+>-]
+            >[<+>-]
+        <-]
+        [now (1st time): T01111111111_22222Z^00000000000LM where:
+                    Z = 0 iff 3 was all 0; if this is 0, we inc M]
+
+        >>>>>>>>>>>>>+<<<<<<<<<<<<<<
+        [>>>>>>>>>>>>>>-<<<<<<<<<<<<<<[-]]
+
+        [now (1st time): T01111111111_22222^000000000000LM where:
+        finally we move everthing up 1 from 2]
+        <[>+<-] <[>+<-] <[>+<-] <[>+<-] <[>+<-]
+        [now (1st time): T01111111111_^22222000000000000LM where:]
+        +>>>>>>>>>>>>>>>>>>>[>+<-]<[>+<-]
+    >-]
+
+    [and then if M is greater than 0, we print 1, else 0]
+
+    >[<+>[-]]<
+                    
+    ++++++++++++++++++++++++++++++++++++++++++++++++.[-]
+    ++++++++++.[-]
+
+    [wipe and read endline]
+    <<<<<<<<<<<<<<
+    ,
+    [[-]<]
+<-]
