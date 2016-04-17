@@ -10,38 +10,22 @@ solveX x =
         return ()
     else return ()
 
-polish (x:xs) =
-    if (length xs > 0) then
-        if operator x then
-            (polish xs) ++ [x]
-        else if x == '(' then (polish before) ++ (polish after)
-        else if x == ')' then polish xs
-        else [x] ++ polish xs
-    else if x /= ')' then [x]
-    else []
+polish :: [Char] -> [Char]
+polish [] = []
+polish ('(':xs) = (polish (toEnd xs)) ++ (polish (fromEnd xs))
+polish (x:xs) = if operator x then (polish xs) ++ [x] else [x] ++ (polish xs)
         
-    where
-        operator x = x == '*' || x == '+' || x == '-' || x == '/' || x == '^'
-        before = toEnd xs
-        after = fromEnd xs
+operator :: Char -> Bool
+operator x = x == '*' || x == '+' || x == '-' || x == '/' || x == '^'
 
-toEnd (x:xs) = 
-    if length xs > 0 then
-        if x == ')' then
-            []
-        else if x == '(' then
-            ['('] ++ (toEnd xs) ++ [')'] ++ (toEnd (fromEnd xs))
-        else
-            [x] ++ (toEnd xs)
-    else
-        []
+toEnd :: [Char] -> [Char]
+toEnd [] = []
+toEnd ('(':xs) = "(" ++ (toEnd xs) ++ ")" ++ toEnd (fromEnd xs)
+toEnd (')':xs) = []
+toEnd (x:xs) = x : toEnd xs
 
-fromEnd (x:xs) = 
-    if length xs > 0 then
-        if x == ')' then
-            ")" ++ xs
-        else if length xs > 1 && x == '(' then
-            ")" ++ fromEnd (drop 1 (fromEnd xs))
-        else ")" ++ fromEnd xs
-    else [')']
+fromEnd [] = []
+fromEnd ('(':xs) = fromEnd (fromEnd xs)
+fromEnd (')':xs) = xs
+fromEnd (x:xs) = fromEnd xs
 
