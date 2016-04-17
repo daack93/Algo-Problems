@@ -12,10 +12,11 @@ def solve():
         ans = str(int(num1)-int(num2))
         num2 = '-' + num2
         l1,l2,l3 = len(num1),len(num2),len(ans)
-        lm = max(l1,max(l2,l3))
+        lmt = max(l2,l3)
+        lm = max(l1,lmt)
         print ' '*(lm-l1)+num1
         print ' '*(lm-l2)+num2
-        print '-'*lm
+        print ' '*(lm-lmt)+'-'*lmt
         print ' '*(lm-l3)+ans
 
     elif '+' in expr:
@@ -25,11 +26,13 @@ def solve():
         ans = str(int(num1)+int(num2))
         num2 = "+" + num2
         l1,l2,l3 = len(num1),len(num2),len(ans)
-        lm = max(l1,max(l2,l3))
+        lmt = max(l2,l3)
+        lm = max(l1,lmt)
         print ' '*(lm-l1)+num1
         print ' '*(lm-l2)+num2
-        print '-'*lm
+        print ' '*(lm-lmt) + '-'*lmt
         print ' '*(lm-l3)+ans
+
     elif '*' in expr:
         i = expr.index("*")
         num1 = expr[:i]
@@ -49,21 +52,28 @@ def solve():
         if len(placeProds) == 1:
             ans = str(placeProds[0])
             l1,l2,l3 = len(num1),len(num2),len(ans)
-            lm = max(l1,max(l2,l3))
+            lmt = max(l2,l3)
+            lm = max(l1,lmt)
             print ' '*(lm-l1)+num1
             print ' '*(lm-l2)+num2
-            print '-'*lm
+            print ' '*(lm-lmt)+'-'*lmt
             print ' '*(lm-l3)+ans
         else:
             finans = str(sum(placeProds))
             l1,l2,l4 = len(num1),len(num2),len(finans)
-            l3 = max(l1,l2,len(str(placeProds[0])))
-            lm = max(max(l1,l2),max(l3,l4))
+            l3 = max(l1,l2)
+            lmt = max(l2,len(placeProdStr[0]))
+            lm = max(l1,l2,l4)
             print ' '*(lm - l1)+num1
             print ' '*(lm - l2)+num2
-            print ' '*(lm - l3)+'-'*l3
+            print ' '*(lm - lmt)+'-'*lmt
+            i = 1
             for place,placeStr in zip(placeProds,placeProdStr):
-                print ' '*(lm-len(str(place))) + placeStr
+                if place != 0:
+                    print ' '*(lm-len(str(place))) + placeStr
+                else:
+                    print ' '*(lm-i) + placeStr
+                i += 1
             print ' '*(lm-l4)+'-'*l4
             print ' '*(lm-l4)+finans
     print
