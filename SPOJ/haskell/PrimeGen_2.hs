@@ -1,23 +1,23 @@
---A fast Prime Generator Based on Melisa ONeal's paper:
---https://www.cs.hmc.edu/~oneill/papers/Sieve-JFP.pdf
+--SPOJ Problem: PRIME1
 --Author: David Ackerman
 --April 19th 2016
---
---However, this does not solve the SPOJ PRIMES Problem, since it is
---performing the sieve from 2 no matter what. Need to rethink in order to
---get large ranges like 999900000-1000000000.
---Possibly primeGenRange, to perform sieve up to rad b and then continue from a?
 
 import PriorityQueue
 
 main = do
     x <- readLn :: IO Int
-    printInBounds 1 x genPrimes
-    --solveX x solution
+    solveX x solution
 
 solution = do
     [a,b] <- fmap (map read.words) getLine
-    printInBounds a b genPrimes
+    printq  $  (table a b (spin wheel2357 11))
+    print $ toKeyList (table a b (spin wheel2357 11))
+
+printq EmptyQueue = return ()
+printq n = do
+    print $ readMinK n
+    printq $ removeMin n
+
 
 solveX x solution = do
     if (x > 0) then do
@@ -26,32 +26,30 @@ solveX x solution = do
         return ()
     else return ()
 
-printInBounds a b (x:xs)
-    |b < x        = return ()
-    |a > x        = do 
-            printInBounds a b xs
-            return ()
-    |otherwise    = do
-        print x
-        printInBounds a b xs
+printEm [] = return ()
+printEm (x:xs) = do
+    print x
+    printEm xs
 
-genPrimes = 2:3:5:7:(sieve (spin wheel2357 11))
+
+
+genPrimes a b = [x | x <- [2,3,4,7], x >= a, x <= b] ++ (sieve a b (spin wheel2357 ( max 11 (11+(210*((a-11) `div` 210))))))
 
 wheel2357 = 2:4:2:4:6:2:6:4:2:4:6:6:2:6:4:2:6:4:6:8:4:2:4:2:4:8
             :6:4:6:2:4:6:2:6:6:4:2:4:6:2:6:4:2:4:2:10:2:10:wheel2357
 spin (x:xs) n = n : spin xs (n + x)
 
-sieve :: [Int] -> [Int]
-sieve [] = []
-sieve (x:xs) = x : sieve' xs (addPrime x EmptyQueue)
+sieve :: Int -> Int -> [Int] -> [Int]
+sieve a b [] = []
+sieve a b xs = (sieve' a b xs (table a b (spin wheel2357 11)))
     where
-        addPrime :: Int -> PriorityQueue Int [Int] (Int,Int) -> PriorityQueue Int [Int] (Int,Int)
-        addPrime x queue = insert (x*x) (map (*x) xs) queue
-        sieve' :: [Int] -> PriorityQueue Int [Int] (Int,Int) -> [Int]
-        sieve' [] queue = []
-        sieve' (x:xs) queue
-            | nextComp <= x = sieve' xs (adjust queue)
-            | otherwise     = x : sieve' xs (addPrime x queue)
+        sieve' :: Int -> Int -> [Int] -> PriorityQueue Int [Int] (Int,Int) -> [Int]
+        sieve' a b [] queue = []
+        sieve' a b (x:xs) queue
+            | nextComp <= x = sieve' a b xs (adjust queue)
+            | x > b         = []
+            | x < a         = sieve' a b xs queue
+            | otherwise     = x : sieve' a b xs queue
             where
                 nextComp = head (readMin queue)
                 adjust queue
@@ -60,4 +58,31 @@ sieve (x:xs) = x : sieve' xs (addPrime x EmptyQueue)
                     where
                         (n,ns) = ((head (readMin queue)),(tail (readMin queue)))
 
+table :: Int -> Int -> [Int] -> PriorityQueue Int [Int] (Int,Int)
+table a b (x:xs) = addTablePrime a x (table' a b xs (addPrime x EmptyQueue))
+    where
+        addPrime :: Int -> PriorityQueue Int [Int] (Int,Int) -> PriorityQueue Int [Int] (Int,Int)
+        addPrime x queue = insert (x*x) (map (*x) xs) queue
 
+        addTablePrime :: Int -> Int -> PriorityQueue Int [Int] (Int,Int) -> PriorityQueue Int [Int] (Int,Int)
+        addTablePrime a x queue = insert (x) (greater a (map (*x) xs)) queue
+            where
+                s = max (a `div` x) x
+                greater :: Int -> [Int] -> [Int]
+                greater s (x:xs)
+                    | x >= s     = x : xs
+                    | otherwise = (greater s xs)
+
+        table' :: Int -> Int -> [Int] -> PriorityQueue Int [Int] (Int,Int) -> PriorityQueue Int [Int] (Int,Int)
+        table' a b [] queue = EmptyQueue
+        table' a b (x:xs) queue
+            | nextComp <= x = table' a b xs (adjust queue)
+            | x*x > b       = EmptyQueue
+            | otherwise     = addTablePrime a x (table' a b xs (addPrime x queue))
+            where
+                nextComp = head (readMin queue)
+                adjust queue
+                    | n <= x     = adjust (insert (head ns) (tail ns) (removeMin queue))
+                    | otherwise  = queue
+                    where
+                        (n,ns) = ((head (readMin queue)),(tail (readMin queue)))
