@@ -3,12 +3,28 @@
 -- Apr 18, 2016
 -- Another attempt, simpler data structures, better rank
 
-module PriorityQueue (PriorityQueue(EmptyQueue),readMinK,readMin,insert,toKeyList,removeMin) where
+-- module PriorityQueue (PriorityQueue(EmptyQueue),readMinK,readMin,insert,toKeyList,removeMin) where
 
 data PriorityQueue k v d = 
           EmptyQueue
         | Node (PriorityQueue k v d) (PriorityQueue k v d) k v d
         --each node stores key, value, and (rank,depth) priority
+
+
+main = do
+    print "start"
+    let q = insertValues ( reverse [1..100000]) EmptyQueue
+    print "loaded"
+    printq q
+    print "end"
+
+printq EmptyQueue = return ()
+printq n = do
+    -- print $ readMin n
+    printq $ removeMin n
+
+insertValues [] q = q
+insertValues (x:xs) q = insertValues xs $ insert x x q
 
 rank :: (Ord k, Integral d) => PriorityQueue k v (d,d) -> d
 rank EmptyQueue = 0
@@ -33,6 +49,7 @@ readMinK (Node l r k v d) = k
 insert :: (Ord k, Integral d) => k -> v -> PriorityQueue k v (d,d) -> PriorityQueue k v (d,d)
 insert k' v' EmptyQueue = Node EmptyQueue EmptyQueue k' v' (1,1)
 insert k' v' (Node l r k v d)
+    |empty l, not (empty r) = error "Insert on improper heap"
     |rr < rl        = Node oldNode newNode newK newV (newRank,newDepth)
     |otherwise      = Node newNode oldNode newK newV (newRank,newDepth)
                 where
@@ -55,29 +72,31 @@ removeMin n@(Node l r k v d) = bubble (popLast (Node l r k' v' d))
     where
         bubble EmptyQueue           = EmptyQueue
         bubble n@(Node l r k v d)
+            | empty l, not (empty r) = error "bubble on improper heap"
             | empty l               = n
             | empty r, k <= lk      = n
-            | empty r               = Node (Node EmptyQueue EmptyQueue k v (0,0)) EmptyQueue (readMinK l) (readMin l) (0,0)
+            | empty r               = Node (Node EmptyQueue EmptyQueue k v (1,1)) EmptyQueue (readMinK l) (readMin l) (1,2)
             | k <= lk, k <= rk      = n
-            | lk <= rk              = Node (bubble (Node ll lr k v ld)) r lk lv d
+            | lk < rk               = Node (bubble (Node ll lr k v ld)) r lk lv d
             | otherwise             = Node l (bubble (Node rl rr k v rd)) rk rv d
             where
                 getVals (Node l r k v d) = (l,r,k,v,d)
                 (ll,lr,lk,lv,ld) = getVals l
                 (rl,rr,rk,rv,rd) = getVals r
         popLast n@(Node l r k v d)
+            | empty l, not (empty r) = error "popLast on improper heap"
             | empty l           = EmptyQueue
-            | empty r           = lessDeep (Node EmptyQueue EmptyQueue k v d)
+            | empty r           = Node EmptyQueue EmptyQueue k v (1,1)
             | depth l > depth r = nextLevel pl r k v
             | otherwise         = nextLevel l pr k v
             where 
-                lessDeep (Node l r k v d) = Node l r k v (fst d, (snd d) - 1)
-                nextLevel l r k v = Node l r k v (min (rank l) (rank r), max (depth l) (depth r))
+                nextLevel l r k v = Node l r k v (1 + (min (rank l) (rank r)), 1 + (max (depth l) (depth r)))
                 pr = popLast r
                 pl = popLast l
         (k',v') = getLast n
             where
                 getLast n@(Node l r k v d)
+                    | empty l, not (empty r) = error "getLast on improper heap"
                     | empty l            = (k,v)
                     | empty r            = getLast l
                     | depth l > depth r  = getLast l

@@ -12,8 +12,13 @@ import PriorityQueue
 
 main = do
     x <- readLn :: IO Int
-    printInBounds 1 x genPrimes
+    print $ length (lessThan x genPrimes)
     --solveX x solution
+
+lessThan m [] = []
+lessThan m (x:xs)
+    | x <= m    = x : (lessThan m xs)
+    | otherwise = []
 
 solution = do
     [a,b] <- fmap (map read.words) getLine

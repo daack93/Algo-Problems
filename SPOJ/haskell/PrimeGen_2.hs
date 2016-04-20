@@ -11,7 +11,7 @@ main = do
 solution = do
     [a,b] <- fmap (map read.words) getLine
     printq  $  (table a b (spin wheel2357 11))
-    print $ toKeyList (table a b (spin wheel2357 11))
+    print $ length $ toKeyList (table a b (spin wheel2357 11))
 
 printq EmptyQueue = return ()
 printq n = do
