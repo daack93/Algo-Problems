@@ -4,7 +4,7 @@
 -- A third attempt
 
 -- module PriorityQueue (PriorityQueue(EmptyQueue),readMinK,readMin,insert,toKeyList,removeMin) where
---
+
 
 data PriorityQueue k v d =
           EmptyQueue
@@ -46,10 +46,18 @@ constructNode ln rn k v = Node ln rn (k,v,r,d)
 
 insert :: Ord k => k -> v -> PriorityQueue k v Int -> PriorityQueue k v Int
 insert k v EmptyQueue = constructNode EmptyQueue EmptyQueue k v
-insert k v (Node ln rn (j,u,_,_))
-    | goRight       = constructNode ln (insert k' v' rn) j' u'
-    | otherwise     = constructNode (insert k' v' ln) rn j' u'
+insert k v (Node EmptyQueue _ (j,u,_,_)) = Node (insert k' v' EmptyQueue) EmptyQueue (j',u',1,2)
     where
+        (k',v',j',u') = if k > j then (k,v,j,u) else (j,u,k,v)
+insert k v (Node ln EmptyQueue (j,u,_,_)) = Node ln (insert k' v' EmptyQueue) (j',u',2,2)
+    where
+        (k',v',j',u') = if k > j then (k,v,j,u) else (j,u,k,v)
+insert k v (Node ln@(Node _ _ (_,_,lr,ld)) rn@(Node _ _ (_,_,rr,rd)) (j,u,_,_))
+    | goRight       = Node ln (insert k' v' rn) (j',u',r,d)
+    | otherwise     = Node (insert k' v' ln) rn (j', u',r,d)
+    where
+        r = (1 + (min rr lr))
+        d = (1 + (max rd ld))
         goRight = (rank rn) < (rank ln)
         (k',v',j',u') = if k > j then (k,v,j,u) else (j,u,k,v)
 
@@ -79,15 +87,15 @@ removeMin n@(Node rn ln _) = bubble (popLast (constructNode rn ln k' v'))
 
 main = do
     print "start"
-    let q = insertValues ( reverse [1..1000]) EmptyQueue
+    let q = insertValues (  [1..100000]) EmptyQueue
+    print $ key (removeMin q)
     print "loaded"
-    print $ toList q
     printq q
     print "end"
 
 printq EmptyQueue = return ()
 printq n = do
-    print $ key n
+    -- print $ key n
     printq $ removeMin n
 
 insertValues [] q = q
@@ -95,7 +103,7 @@ insertValues (x:xs) q = insertValues xs $ insert x x q
 
 toList EmptyQueue = []
 toList (Node r l (k,v,_,_)) = (k,v) : (toList l) ++ (toList r)
--- 
+
 -- rank :: (Ord k, Integral d) => PriorityQueue k v (d,d) -> d
 -- rank EmptyQueue = 0
 -- rank (Node l r k v d) = fst d
