@@ -8,12 +8,12 @@
 --get large ranges like 999900000-1000000000.
 --Possibly primeGenRange, to perform sieve up to rad b and then continue from a?
 
-import SBTQ
+import PriorityQueue
 
 main = do
     x <- readLn :: IO Int
     print $ length (lessThan x genPrimes)
-    -- solveX x solution
+    --solveX x solution
 
 lessThan m [] = []
 lessThan m (x:xs)
@@ -48,21 +48,21 @@ spin (x:xs) n = n : spin xs (n + x)
 
 sieve :: [Int] -> [Int]
 sieve [] = []
-sieve (x:xs) = x : sieve' xs (addPrime x E)
+sieve (x:xs) = x : sieve' xs (addPrime x EmptyQueue)
     where
-        addPrime :: Int -> SBTQ Int [Int] -> SBTQ Int [Int]
-        addPrime x queue = iq (x*x) (map (*x) xs) queue
-        sieve' :: [Int] -> SBTQ Int [Int] -> [Int]
+        addPrime :: Int -> PriorityQueue Int [Int] (Int,Int) -> PriorityQueue Int [Int] (Int,Int)
+        addPrime x queue = insert (x*x) (map (*x) xs) queue
+        sieve' :: [Int] -> PriorityQueue Int [Int] (Int,Int) -> [Int]
         sieve' [] queue = []
         sieve' (x:xs) queue
             | nextComp <= x = sieve' xs (adjust queue)
             | otherwise     = x : sieve' xs (addPrime x queue)
             where
-                nextComp = head (rq queue)
+                nextComp = head (readMin queue)
                 adjust queue
-                    | n <= x     = adjust (iq (head ns) (tail ns) (dq queue))
+                    | n <= x     = adjust (insert (head ns) (tail ns) (removeMin queue))
                     | otherwise  = queue
                     where
-                        (n,ns) = ((head (rq queue)),(tail (rq queue)))
+                        (n,ns) = ((head (readMin queue)),(tail (readMin queue)))
 
 

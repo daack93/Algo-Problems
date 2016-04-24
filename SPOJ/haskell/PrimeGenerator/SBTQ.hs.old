@@ -1,0 +1,47 @@
+-- Another attempt at PQs, this time a Skew Binomial Q rather than Binary Heap
+-- Striving for obfuscation and unreadability just for fun this time ;)
+-- Author: David Ackerman
+-- Date: Apr 21 2016
+
+
+module SBTQ (SBTQ(E),iq,rq,dq) where
+
+data SBTQ k v = E | T [SBTQ k v] k v Int
+nq k v = T [] k v 0
+sl n@(T c k v r) o@(T d l w s) = T (n' : c') k' v' (1 + r')
+    where
+        (n',c',k',v',r') = if k < l then (o,c,k,v,r) else (n,d,l,w,s)
+sk n@(T c k v r) o@(T d l w s) p@(T e m x t) = T (n' : o' : c') k' v' (1 + r')
+    where
+        (n',o',c',k',v',r')
+            | k <= (min l m) = (o,p,c,k,v,s)
+            | l < m          = (n,p,d,l,w,s)
+            | otherwise      = (n,o,e,m,x,t)
+iq k v (T (x@(T _ _ _ r):y@(T _ _ _ s):xs) l w _) = T c' k' v' 0
+    where
+        (k',v',l',w') = if k < l then (k,v,l,w) else (l,w,k,v)
+        c'
+            | r == s    = (sk (nq l' w') x y) : xs
+            | otherwise = (nq l' w') : x : y : xs
+iq k v (T c l w _) = T ((nq l' w') : c) k' v' 0
+    where
+        (l',w',k',v') = if k < l then (l,w,k,v) else (k,v,l,w)
+iq k v E = nq k v
+m n@(T c k v _) o@(T d l w _) = iq k' v' (T (m' c d) l' w' 0)
+    where
+        (k',v',l',w') = if k < l then (k,v,l,w) else (l,w,k,v)
+        m' c@(x@(T _ _ _ r):xs) d@(y@(T _ _ _ s):ys) = x' : (m' d' e')
+            where
+            (x',d',e')
+                | r < s = (x,xs,d)
+                | s < r = (y,ys,c)
+                | otherwise = (sl x y,xs,ys)
+        m' c d = c ++ d
+m n o = n
+rq n@(T _ _ v _) = v
+dq n@(T c _ _ _) = d' c
+    where
+        d' c@(x@(T _ k v r):xs)
+            | r > 0 = m x (d' xs)
+            | otherwise = iq k v (d' xs)
+        d' c = E
